@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PepperTap — Failure Story</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        :root{--bg:#0f172a;--muted:#98a8c7;--card:#071028;--accent:#7fc3ff}
+        html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Segoe UI,Arial,sans-serif}
+        .wrap{max-width:900px;margin:28px auto;padding:20px}
+        .header{display:flex;align-items:center;gap:18px}
+        .logo{width:84px;height:84px;border-radius:8px;object-fit:cover}
+        h1{margin:0;font-size:28px}
+        .meta{color:var(--muted);margin-top:6px}
+        .card{background:var(--card);padding:18px;border-radius:10px;border:1px solid #0f2030;margin-top:16px;color:#cbd5e1}
+        .section{margin-top:18px}
+        .small{color:var(--muted);font-size:13px}
+        a.source{color:var(--accent);text-decoration:none}
+        .math{background:#081826;padding:12px;border-radius:8px;margin-top:8px;border:1px solid rgba(127,195,255,0.06)}
+        /* AR / floating logo */
+        #floatingLogo{position:fixed;right:24px;top:20vh;width:128px;height:128px;pointer-events:none;z-index:70;transform-origin:center;filter:drop-shadow(0 10px 30px rgba(0,0,0,0.5));}
+        #floatingLogo img{width:100%;height:100%;border-radius:12px;object-fit:contain;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:8px}
+        /* subtle AR overlay badges */
+        .ar-badge{position:absolute;left:12px;top:12px;background:rgba(127,195,255,0.04);border:1px solid rgba(127,195,255,0.06);color:var(--accent);padding:6px 8px;border-radius:8px;font-size:12px}
+        .parallax-layer{transform-style:preserve-3d}
+    </style>
+</head>
+<body>
+    <!-- Full-viewport starfield (2D) and 3D background canvases -->
+    <canvas id="starfield" style="position:fixed;inset:0;z-index:-12;pointer-events:none;display:block;" aria-hidden="true"></canvas>
+    <canvas id="bg3d" style="position:fixed;inset:0;z-index:-11;pointer-events:none;display:block;" aria-hidden="true"></canvas>
+    <div style="position:relative;z-index:1">
+    <!-- Floating AR-style logo -->
+    <div id="floatingLogo" aria-hidden="true">
+        <img id="floatingImg" src="/presentations/static/peppertap_logo.png" alt="PepperTap logo" />
+    </div>
+    <div class="wrap">
+        <header class="header">
+            <img class="logo" src="/presentations/static/peppertap_logo.png" alt="PepperTap logo">
+            <div>
+            <!-- AR animations: GSAP + orientation/mouse parallax -->
+                <div class="meta">Food &amp; Beverage · India · Started 2014 · Closed 2016</div>
+            </div>
+        </header>
+
+        <!-- source attribution removed -->
+
+        
+            </div>
+        </article>
+
+        <article class="section card">
+            <h3>What happened after?</h3>
+            <p>PepperTap's parent, Nuvo Logistics, continued for a while and later was sold. The founders moved on and the market gained lessons about quick-delivery economics.</p>
+        </article>
+
+        <article class="section card">
+            <h3>Lessons</h3>
+            <ul>
+                <li>Validate unit economics before scaling.</li>
+                <li>Build an MVP, iterate, and fix operational bottlenecks.</li>
+                <li>Discount-driven growth without sustainability leads to collapse.</li>
+            </ul>
+        </article>
+
+        <article class="section card">
+            <h3>Financials — A deeper look</h3>
+            <p>The simplified per-order math above masks several additional leakages that made the net loss worse in practice:</p>
+            <ul>
+                <li><strong>Customer acquisition cost (CAC):</strong> Heavy marketing and couponing to acquire repeat users increased payback periods significantly.</li>
+                <li><strong>Rider incentives &amp; surge:</strong> Peak-hour fulfillment required extra incentives and longer routes, increasing average logistics cost beyond simple estimates.</li>
+                <li><strong>Refunds &amp; wastage:</strong> Perishable items led to higher refund rates and write-offs when orders failed or quality complaints rose.</li>
+                <li><strong>Fixed operating costs:</strong> Warehousing for last-mile hubs, tech/ops headcount and customer support added sizable monthly burn.</li>
+            </ul>
+            <p>Combined, these items could increase the effective loss per order by 10–40% versus the headline example, shortening runway rapidly even with funding.</p>
+        </article>
+
+        <article class="section card">
+            <h3>Analytics &amp; Charts</h3>
+            <p class="small">Key public figures and an estimated orders/loss timeline.</p>
+            <div class="chart-container">
+                <canvas id="pepperChart" style="background:transparent;display:block"></canvas>
+            </div>
+            <div class="small" style="margin-top:8px"><!-- sources removed -->
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+            <script>
+                (function(){
+                    try{
+                        const raw = {{ chart_json|safe }};
+                        const canvas = document.getElementById('pepperChart');
+                        const container = canvas.parentElement;
+                        // enforce the intended container height (helps Chart.js size correctly)
+                        container.style.height = '220px';
+                        canvas.style.width = '100%';
+                        canvas.style.height = '100%';
+                        const ctx = canvas.getContext('2d');
+                        const cfg = {
+                            type: 'line',
+                            data: {
+                                labels: raw.labels,
+                                datasets: raw.datasets.map((ds, i)=>({
+                                    label: ds.label,
+                                    data: ds.data,
+                                    borderColor: ds.borderColor || (i? '#ff9b9b':'#ef4444'),
+                                    backgroundColor: ds.backgroundColor || 'rgba(255,255,255,0.03)',
+                                    tension: 0.28,
+                                    pointRadius: 3
+                                }))
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio:false,
+                                scales: { y: { beginAtZero:false, grid:{color:'rgba(255,255,255,0.04)'} }, x: { grid:{color:'rgba(255,255,255,0.02)'} } },
+                                plugins: { legend: { labels:{color:'#dbe7ff'} } }
+                            }
+                        };
+                        new Chart(ctx, cfg);
+                    }catch(e){ console.warn('Chart load failed', e); }
+                })();
+            </script>
+        </article>
+
+        <article class="section card">
+            <h3>Detailed timeline</h3>
+            <p>Key milestones and how decisions map to outcomes:</p>
+            <ol>
+                <li><strong>Nov 2014 — Launch:</strong> Product-market fit tested locally with a few partner kirana stores.</li>
+                <li><strong>2015 H1 — Growth mode:</strong> Focus moved from operational stability to geographic expansion and growth metrics.</li>
+                <li><strong>Oct 2015 — Peak expansion:</strong> Entered many new cities; marketing and discounts were ramped up.</li>
+                <li><strong>Feb 2016 — Retrenchment:</strong> Cash pressures forced closures in several cities and focus on conserving runway.</li>
+                <li><strong>Apr 2016 — Halt:</strong> Grocery operations were suspended and the startup wound down consumer-facing services.</li>
+            </ol>
+        </article>
+
+        <article class="section card">
+            <h3>Alternate strategies PepperTap could have tried</h3>
+            <ul>
+                <li><strong>Gradual city rollout:</strong> Prove unit economics in a single city with tighter inventory controls before scaling laterally.</li>
+                <li><strong>Hybrid inventory model:</strong> Maintain small micro-fulfillment centers for high-frequency SKUs to reduce logistics cost and stockouts.</li>
+                <li><strong>Partnerships:</strong> Deeper contractual partnerships with large kirana chains to guarantee inventory and pricing stability.</li>
+                <li><strong>Selective discounts:</strong> Use targeted incentives for retention rather than broad, blanket discounts that destroy margins.</li>
+            </ul>
+        </article>
+
+        <article class="section card">
+            <h3>Founder &amp; investor reflections</h3>
+            <p>Post-mortems from founders and investors often highlight the tension between growth and unit economics. Many felt that aggressive growth targets and pressure to scale quickly reduced the time available to optimize operations and margins.</p>
+            <p>Investor expectations for rapid market share can push startups to prioritize headline metrics over sustainable profitability; balancing these pressures is an ongoing challenge in consumer logistics businesses.</p>
+        </article>
+
+        <!-- further reading and source attributions removed -->
+        <!-- AR animations: GSAP + orientation/mouse parallax -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+        <script>
+            (function(){
+                const logo = document.getElementById('floatingLogo');
+                const img = document.getElementById('floatingImg');
+
+                // mouse parallax for desktop
+                document.addEventListener('mousemove', (e)=>{
+                    const x = (e.clientX / window.innerWidth - 0.5) * 22; // tilt range
+                    const y = (e.clientY / window.innerHeight - 0.5) * 18;
+                    gsap.to(logo, {rotationY: x, rotationX: -y, x: x*0.6, y: y*0.4, duration:0.8, ease:'power3.out'});
+                    gsap.to(img, {scale:1.02, duration:0.9, ease:'power3.out'});
+                });
+
+                // device orientation for mobile (if allowed)
+                function handleOrientation(e){
+                    const gx = e.gamma || 0; // left-right tilt
+                    const by = e.beta || 0;  // front-back tilt
+                    const rx = gx/3; const ry = by/3;
+                    gsap.to(logo, {rotationY: rx, rotationX: ry, duration:0.6, ease:'power2.out'});
+                }
+                if(window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                }
+
+                // gentle float animation
+                gsap.to(logo, {y:'+=6', repeat:-1, yoyo:true, duration:3.4, ease:'sine.inOut'});
+
+                // 3D reveal for article cards
+                gsap.utils.toArray('.card').forEach((el,i)=>{
+                    gsap.from(el, {opacity:0, y:18, delay:0.18*i, duration:0.7, ease:'power2.out'});
+                });
+            })();
+        </script>
+
+        <!-- Background 3D grocery sprites -->
+        <script>
+            (function(){
+                if(!window.THREE) return;
+
+                const canvas = document.getElementById('bg3d');
+                const renderer = new THREE.WebGLRenderer({canvas: canvas, alpha: true, antialias: true});
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                renderer.setClearColor(0x0f172a, 0);
+
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 80;
+
+                const ambient = new THREE.AmbientLight(0xffffff, 0.35);
+                const dir = new THREE.DirectionalLight(0xffffff, 0.45);
+                dir.position.set(0,1,1);
+                scene.add(ambient, dir);
+
+                // Generate soft blob textures (clean, non-square icons)
+                const textures = [];
+                function createBlobTexture(){
+                    const base1 = '#7fc3ff'; // light blue
+                    const base2 = '#0b3b57'; // darker blue
+                    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+                    const ctx = c.getContext('2d');
+                    ctx.clearRect(0,0,256,256);
+                    // circular radial gradient only (transparent outside)
+                    const g = ctx.createRadialGradient(128,96,20,128,128,120);
+                    g.addColorStop(0, base1);
+                    g.addColorStop(1, base2);
+                    ctx.beginPath(); ctx.arc(128,128,120,0,Math.PI*2); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
+                    // soft highlight
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                    ctx.beginPath(); ctx.ellipse(92,92,56,36,0,0,Math.PI*2); ctx.fill();
+                    const t = new THREE.CanvasTexture(c); t.needsUpdate = true; return t;
+                }
+
+                // generate several variants that remain in the same blue family
+                for(let i=0;i<6;i++) textures.push(createBlobTexture());
+                // immediately build sprites using generated textures
+                buildSprites();
+
+                function buildSprites(){
+                    const ITEMS = 160;
+                    const sprites = [];
+                    for(let i=0;i<ITEMS;i++){
+                        const tex = textures[Math.floor(Math.random()*textures.length)];
+                        const mat = new THREE.SpriteMaterial({map: tex, transparent:true, opacity:0.95});
+                        const spr = new THREE.Sprite(mat);
+                        const baseX = (Math.random() - 0.5) * 220;
+                        const baseY = (Math.random() - 0.5) * 90;
+                        const baseZ = -Math.random() * 240 - 20;
+                        const s = 3 + Math.random()*6;
+                        spr.position.set(baseX, baseY, baseZ);
+                        spr.scale.set(s, s, 1);
+                        spr.userData = {baseX, baseY, baseZ, s, speed:0.15 + Math.random()*0.9, rx:Math.random(), ry:Math.random()};
+                        scene.add(spr);
+                        sprites.push(spr);
+                    }
+
+                    // small subtle particles for depth
+                    const smallGeo = new THREE.SphereGeometry(0.18, 6, 6);
+                    const smallMat = new THREE.MeshBasicMaterial({color:0x7fc3ff, opacity:0.12, transparent:true});
+                    const smallCount = 200;
+                    const smallInst = new THREE.InstancedMesh(smallGeo, smallMat, smallCount);
+                    const tmp = new THREE.Object3D();
+                    for(let i=0;i<smallCount;i++){ tmp.position.set((Math.random()-0.5)*360,(Math.random()-0.5)*120,-Math.random()*420 - 40); tmp.updateMatrix(); smallInst.setMatrixAt(i, tmp.matrix); }
+                    scene.add(smallInst);
+
+                    // animate
+                    let t = 0;
+                    function animate(){
+                        t += 0.01;
+                        for(let i=0;i<sprites.length;i++){
+                            const sp = sprites[i];
+                            const d = sp.userData;
+                            const ox = d.baseX + Math.sin(t * d.speed + i) * (6 + d.s*0.4);
+                            const oy = d.baseY + Math.cos(t * d.speed * 0.7 + i) * (4 + d.s*0.18);
+                            const oz = d.baseZ + Math.sin(t * d.speed * 0.5 + i) * 6;
+                            sp.position.set(ox, oy, oz);
+                            const sc = d.s * (0.95 + 0.06*Math.sin(t*d.speed + i));
+                            sp.scale.set(sc, sc, 1);
+                        }
+                        camera.position.x = Math.sin(t*0.12) * 6;
+                        camera.position.y = Math.sin(t*0.07) * 3;
+                        camera.lookAt(0,0,0);
+                        renderer.render(scene, camera);
+                        requestAnimationFrame(animate);
+                    }
+                    animate();
+                }
+
+                // resize handling
+                function resize(){ const w=window.innerWidth,h=window.innerHeight; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h); }
+                window.addEventListener('resize', resize, {passive:true}); resize();
+            })();
+        </script>
+
+            <!-- 2D starfield animation (lightweight) -->
+            <script>
+                (function(){
+                    const canvas = document.getElementById('starfield');
+                    if(!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    let W=0,H=0;
+                    function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+                    window.addEventListener('resize', resize, {passive:true}); resize();
+
+                    const COUNT = 220;
+                    const stars = new Array(COUNT).fill(0).map(()=>({
+                        x: Math.random()*W,
+                        y: Math.random()*H,
+                        r: Math.random()*1.25 + 0.4,
+                        a: Math.random()*0.9 + 0.1,
+                        tw: Math.random()*0.018 + 0.002,
+                        vx: (Math.random()-0.5)*0.03,
+                        vy: (Math.random()-0.5)*0.03
+                    }));
+
+                    let t = 0;
+                    function draw(){
+                        t += 0.01;
+                        ctx.clearRect(0,0,W,H);
+                        for(let i=0;i<stars.length;i++){
+                            const s = stars[i];
+                            s.x += s.vx; s.y += s.vy;
+                            if(s.x < -5) s.x = W+5; if(s.x > W+5) s.x = -5;
+                            if(s.y < -5) s.y = H+5; if(s.y > H+5) s.y = -5;
+                            const alpha = Math.max(0.05, Math.min(1, s.a + Math.sin(t*100*s.tw + i)*0.4));
+                            ctx.globalAlpha = alpha;
+                            ctx.fillStyle = '#dbefff';
+                            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+                        }
+                        ctx.globalAlpha = 1;
+                        requestAnimationFrame(draw);
+                    }
+                    draw();
+                })();
+            </script>
+
+        </div>
+    </div>
+</body>
+</html>

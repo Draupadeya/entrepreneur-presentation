@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{ company.name }} — Presentation</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        :root{--bg:#0f172a;--muted:#98a8c7;--card:#071028;--accent:#7fc3ff}
+        html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Segoe UI,Arial,sans-serif}
+        .wrap{max-width:900px;margin:28px auto;padding:20px}
+        .header{display:flex;align-items:center;gap:24px}
+        .logo{width:200px;height:200px;border-radius:14px;background-color:#fff;background-position:center;background-size:contain;background-repeat:no-repeat;padding:10px}
+        h1{margin:0;font-size:28px}
+        .meta{color:var(--muted);margin-top:6px}
+        .card{background:var(--card);padding:18px;border-radius:10px;border:1px solid #0f2030;margin-top:16px;color:#cbd5e1}
+        .section{margin-top:18px}
+        .small{color:var(--muted);font-size:13px}
+        a.source{color:var(--accent);text-decoration:none}
+        .chart-container canvas{width:100% !important;height:100% !important}
+        /* Floating background stars (watermark-style) */
+        .floating-star{position:fixed;left:0;top:0;pointer-events:none;z-index:0;opacity:0.28;mix-blend-mode:screen;border-radius:50%;filter:blur(0.2px)}
+        @media (max-width:900px){ .floating-star{opacity:0.22} }
+        @media (max-width:600px){ .floating-star{display:none} }
+        /* ensure page content sits above watermark logos */
+        .wrap{position:relative;z-index:4}
+        .back-btn{margin-left:auto;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.04);color:#e6f2ff;border:1px solid rgba(255,255,255,0.06);text-decoration:none;font-size:14px}
+        .back-btn:hover{background:rgba(255,255,255,0.06)}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header class="header">
+            <div class="logo" style="background-image: url('{{ company.logo }}');" aria-hidden="true"></div>
+            <div>
+                <h1>{{ company.name }}</h1>
+                <div class="meta">{{ company.overview }}</div>
+            </div>
+            <a href="{% url 'home' %}" class="back-btn" aria-label="Back to home">← Home</a>
+        </header>
+
+        <script>
+        (function(){
+            try{
+                const logoDiv = document.querySelector('.logo');
+                if(!logoDiv) return;
+                const bg = logoDiv.style.backgroundImage || '';
+                const m = bg.match(/url\((?:"|')?(.*?)(?:"|')?\)/);
+                const src = m ? m[1] : null;
+                if(!src) return;
+                const img = new Image();
+                img.onload = function(){
+                    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+                    // slightly smaller maximum so the logo box reduces a bit
+                    const maxW = Math.min(280, Math.floor(vw * 0.18));
+                    const maxH = maxW; // keep square box limit
+                    let w = img.naturalWidth || img.width;
+                    let h = img.naturalHeight || img.height;
+                    if(!w || !h){ logoDiv.style.width = maxW + 'px'; logoDiv.style.height = maxH + 'px'; return; }
+                    const scale = Math.min(1, maxW / w, maxH / h);
+                    const newW = Math.max(100, Math.round(w * scale));
+                    const newH = Math.max(100, Math.round(h * scale));
+                    logoDiv.style.width = newW + 'px';
+                    logoDiv.style.height = newH + 'px';
+                };
+                img.src = src;
+            }catch(e){ console.warn('logo size script failed', e); }
+        })();
+        </script>
+
+        <!-- source attribution removed -->
+
+        <div class="card">
+            <strong>Quick Facts</strong>
+            <div style="margin-top:8px" class="small">
+                Walmart built scale through everyday low pricing, centralized buying and a highly efficient logistics network.
+            </div>
+        </div>
+
+        
+
+        <!-- Render sections provided by the view -->
+        {% if sections %}
+            {% for s in sections %}
+                <article id="{{ s.id }}" class="section card">
+                    <h3>{{ s.title }}</h3>
+                    <div class="content">{{ s.html|safe }}</div>
+                </article>
+            {% endfor %}
+        {% endif %}
+
+        <!-- external reading links removed -->
+    </div>
+    {% if company.name == "PepperTap" or company.name == "Walmart" %}
+    <script>
+    (function(){
+    const COUNT = 64;
+    const stars = [];
+    const vw = () => Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    const vh = () => Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+
+    function rand(min, max){ return Math.random()*(max-min)+min }
+
+    for(let i=0;i<COUNT;i++){
+        const el = document.createElement('div');
+        el.className = 'floating-star';
+        // smaller sizes for subtle but denser field
+        const size = Math.floor(rand(6, 18));
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        // brighter radial glow for intensity
+        el.style.background = `radial-gradient(circle at 50% 45%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 12%, rgba(255,255,255,0.25) 30%, transparent 70%)`;
+        el.style.left = '0px';
+        el.style.top = '0px';
+        const baseOp = (0.12 + Math.random()*0.28);
+        el.style.opacity = baseOp.toFixed(3);
+        el.dataset.baseOpacity = baseOp.toFixed(3);
+        el.style.transform = 'translate3d(0,0,0)';
+        el.style.willChange = 'transform, opacity';
+        document.body.appendChild(el);
+        stars.push({el, x: rand(0,vw()), y: rand(0,vh()), vx: rand(-0.06,0.06), vy: rand(-0.04,0.04), twinkle: Math.random()*2.6 + 0.6});
+    }
+
+    let last = performance.now();
+    function tick(now){
+        const dt = Math.min(60, now - last)/16.666;
+        last = now;
+        const w = vw(), h = vh();
+        for(const s of stars){
+            s.x += s.vx * dt * 3.8;
+            s.y += s.vy * dt * 3.8;
+            if(s.x < -120) s.x = w + 120;
+            if(s.x > w + 120) s.x = -120;
+            if(s.y < -120) s.y = h + 120;
+            if(s.y > h + 120) s.y = -120;
+            // stronger twinkle
+            const base = parseFloat(s.el.dataset.baseOpacity || 0.14);
+            const a = 1 + Math.sin((now/500) * s.twinkle) * 0.5;
+            s.el.style.opacity = Math.max(0.06, Math.min(0.95, base * a)).toFixed(3);
+            s.el.style.transform = `translate3d(${s.x}px, ${s.y}px, 0) scale(${0.9 + (s.el.offsetWidth/180) * 0.14})`;
+        }
+        requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    // subtle drift variation
+    setInterval(()=>{ for(const s of stars){ s.vx += rand(-0.02,0.02); s.vy += rand(-0.015,0.015); } }, 1800);
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>

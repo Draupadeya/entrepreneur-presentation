@@ -1,0 +1,10 @@
+.compare-card { transition: transform .35s ease, box-shadow .35s ease; }
+.compare-card .cmp-logo { width:96px; height:96px; background-size:contain; background-position:center; background-repeat:no-repeat; border-radius:10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02); }
+.panel { min-height:320px; }
+.btn-ghost { transition: transform .18s ease, box-shadow .18s ease; }
+.btn-ghost:hover { transform: translateY(-4px); }
+@media (max-width: 768px){
+  .compare-toggle { position: static !important; transform:none !important; margin-top:1rem; text-align:center; }
+  .compare-card .cmp-logo { width:72px; height:72px; }
+  .panel { min-height:260px; }
+}
