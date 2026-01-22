@@ -3,6 +3,10 @@ name = "entrepreneur-presentation"
 version = "0.1.0"
 description = "Case study presentation site for PepperTap and Walmart"
 authors = ["you <you@example.com>"]
+packages = [
+	{ include = "presentations" },
+	{ include = "core" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
