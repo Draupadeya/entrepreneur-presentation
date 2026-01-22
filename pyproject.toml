@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "entrepreneur-presentation"
+version = "0.1.0"
+description = "Case study presentation site for PepperTap and Walmart"
+authors = ["you <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Django = "^5.2"
+gunicorn = "*"
+whitenoise = "*"
+dj-database-url = "*"
+psycopg2-binary = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
