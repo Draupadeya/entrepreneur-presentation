@@ -9,6 +9,7 @@ services:
       python manage.py collectstatic --noinput
     startCommand: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 3
     autoDeploy: true
+    releaseCommand: python manage.py migrate --noinput
     envVars:
       - key: DEBUG
         value: "False"
